@@ -50,11 +50,22 @@ exports.getCourse = asyncHandler(async (req, res, next) => {
  */
 exports.addCourse = asyncHandler(async (req, res, next) => {
   req.body.bootcamp = req.params.bootcampId;
+  req.body.user = req.user.id;
 
   const bootcamp = await Bootcamp.findById(req.params.bootcampId);
 
   if (!bootcamp)
     return next(new ErrorResponse('No bootcamp with this id', 404));
+
+  //make sure user is bootcamp owner
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `User access denied to add a course to ${bootcamp.name}`,
+        401
+      )
+    );
+  }
 
   const course = await Course.create(req.body);
 
@@ -74,6 +85,16 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
   let course = await Course.findById(req.params.id);
 
   if (!course) return next(new ErrorResponse('No course with this id', 404));
+
+  //make sure user is bootcamp owner
+  if (course.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `User access denied to update a course to ${course.title}`,
+        401
+      )
+    );
+  }
 
   course = await Course.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
@@ -97,7 +118,17 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
 
   if (!course) return next(new ErrorResponse('No course with this id', 404));
 
-  course.remove();
+  //make sure user is bootcamp owner
+  if (course.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `User access denied to add a delete to ${course.title}`,
+        401
+      )
+    );
+  }
+
+  await course.deleteOne();
 
   res.status(200).send({
     success: true,
