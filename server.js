@@ -66,6 +66,13 @@ app.use(fileupload());
 // set STATIC folder
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/', (req, res) => {
+  res
+    .status(200)
+    .send(
+      '<a href="https://documenter.getpostman.com/view/13499056/Tz5jefjn#dc14aae5-8494-411f-ad2e-4409532f1b9b">Docs here</a>'
+    );
+});
 /**
  * *MOUNT routers
  */
